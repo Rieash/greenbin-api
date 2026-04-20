@@ -23,7 +23,7 @@ def load_references():
     }
     
     # YOUR PHOTOS ARE HERE
-    base_path = r'D:\GreenbinApi\references'
+  base_path = os.path.join(os.path.dirname(__file__), 'references')
     
     for material in refs.keys():
         folder = os.path.join(base_path, material)
