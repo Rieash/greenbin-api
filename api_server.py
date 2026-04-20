@@ -21,10 +21,10 @@ def load_references():
         'white_paper': [],
         'clear_plastic': []
     }
-    
-    # YOUR PHOTOS ARE HERE
-  base_path = os.path.join(os.path.dirname(__file__), 'references')
-    
+
+    # Look for references in current directory (works on Windows & Linux)
+    base_path = os.path.join(os.path.dirname(__file__), 'references')
+
     for material in refs.keys():
         folder = os.path.join(base_path, material)
         if os.path.exists(folder):
@@ -38,13 +38,13 @@ def load_references():
                         print(f"Loaded: {material}/{filename}")
         else:
             print(f"Warning: Folder not found: {folder}")
-    
+
     return refs
 
 print("=" * 50)
 print("GREENBIN WASTE CLASSIFICATION API")
 print("=" * 50)
-print("\nLoading reference photos from D:\GreenbinApi\references...")
+print(f"Loading reference photos from {os.path.join(os.path.dirname(__file__), 'references')}...")
 
 references = load_references()
 
