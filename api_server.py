@@ -8,9 +8,32 @@ from flask_cors import CORS
 import cv2
 import numpy as np
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
+
+# ==========================================
+# MOBILE APP - CLASSIFICATION HISTORY
+# ==========================================
+classification_history = []
+MAX_HISTORY = 100  # Keep last 100 items
+
+def add_to_history(material, detailed_type, confidence, weight=0):
+    """Store classification result for mobile app"""
+    entry = {
+        'id': len(classification_history) + 1,
+        'timestamp': datetime.now().isoformat(),
+        'material': material,
+        'detailed_type': detailed_type,
+        'confidence': confidence,
+        'weight': weight,
+        'sorted': True
+    }
+    classification_history.insert(0, entry)  # Add to beginning
+    # Keep only last 100
+    if len(classification_history) > MAX_HISTORY:
+        classification_history.pop()
 
 # ==========================================
 # LOAD YOUR REFERENCE PHOTOS FROM D: DRIVE
@@ -144,6 +167,9 @@ def classify():
         print(f"[RESULT] {result['material']} ({detected_material})")
         print(f"[CONFIDENCE] {confidence:.3f}")
         
+        # Store for mobile app
+        add_to_history(result['material'], detected_material, result['confidence'])
+        
         return jsonify(result), 200
         
     except Exception as e:
@@ -169,9 +195,55 @@ def home():
         'message': 'GreenBin Waste Classification API',
         'endpoints': {
             '/classify': 'POST - Send image, get classification',
-            '/health': 'GET - Check API status'
+            '/health': 'GET - Check API status',
+            '/history': 'GET - Get all classification history (mobile app)',
+            '/latest': 'GET - Get latest classification (mobile app)',
+            '/stats': 'GET - Get sorting statistics (mobile app)'
         }
     })
+
+# ==========================================
+# MOBILE APP ENDPOINTS
+# ==========================================
+
+@app.route('/history', methods=['GET'])
+def get_history():
+    """Get all classification history for mobile app"""
+    limit = request.args.get('limit', default=50, type=int)
+    return jsonify({
+        'count': len(classification_history),
+        'history': classification_history[:limit]
+    })
+
+@app.route('/latest', methods=['GET'])
+def get_latest():
+    """Get latest classification for mobile app"""
+    if classification_history:
+        return jsonify(classification_history[0])
+    return jsonify({'message': 'No classifications yet'}), 404
+
+@app.route('/stats', methods=['GET'])
+def get_stats():
+    """Get sorting statistics for mobile app"""
+    stats = {'paper': 0, 'plastic': 0, 'metal': 0, 'unknown': 0, 'total': 0}
+    for entry in classification_history:
+        mat = entry.get('material', 'unknown')
+        if mat in stats:
+            stats[mat] += 1
+        stats['total'] += 1
+    return jsonify(stats)
+
+@app.route('/report', methods=['POST'])
+def add_report():
+    """Arduino can report sorting results here"""
+    data = request.json or {}
+    add_to_history(
+        material=data.get('material', 'unknown'),
+        detailed_type=data.get('detailed_type', 'unknown'),
+        confidence=data.get('confidence', 0),
+        weight=data.get('weight', 0)
+    )
+    return jsonify({'status': 'added'}), 201
 
 if __name__ == '__main__':
     # Get port from environment variable (for Render.com)
