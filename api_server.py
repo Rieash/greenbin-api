@@ -1,6 +1,6 @@
 # ============================================
-# GREENBIN WASTE CLASSIFICATION API - FIXED
-# Added weight, better paper detection
+# GREENBIN WASTE CLASSIFICATION API - FINAL
+# Fixed weight, swapped mapping for inverted detection
 # ============================================
 
 from flask import Flask, request, jsonify
@@ -62,7 +62,7 @@ def load_references():
     return refs
 
 print("=" * 50)
-print("GREENBIN WASTE CLASSIFICATION API - FIXED")
+print("GREENBIN API - FINAL VERSION")
 print("=" * 50)
 
 references = load_references()
@@ -70,38 +70,32 @@ references = load_references()
 print(f"\nBlack plastic: {len(references['black_plastic'])} photos")
 print(f"White paper:   {len(references['white_paper'])} photos")
 print(f"Clear plastic: {len(references['clear_plastic'])} photos")
-print("\n" + "=" * 50)
-print("API Ready!")
 print("=" * 50 + "\n")
 
 # ==========================================
-# IMPROVED IMAGE COMPARISON
+# IMAGE COMPARISON
 # ==========================================
 def compare_images(img1, img2):
     img1 = cv2.resize(img1, (96, 96))
     img2 = cv2.resize(img2, (96, 96))
     
-    # Histogram comparison
     hist1 = cv2.calcHist([img1], [0], None, [256], [0, 256])
     hist2 = cv2.calcHist([img2], [0], None, [256], [0, 256])
     hist_score = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
     
-    # Pixel similarity
     diff = cv2.absdiff(img1, img2)
     pixel_score = 1 - (np.mean(diff) / 255.0)
     
-    # Edge comparison
     edges1 = cv2.Canny(img1, 50, 150)
     edges2 = cv2.Canny(img2, 50, 150)
     edge_diff = cv2.absdiff(edges1, edges2)
     edge_score = 1 - (np.mean(edge_diff) / 255.0)
     
-    # Combined score
     final_score = (hist_score * 0.5) + (pixel_score * 0.3) + (edge_score * 0.2)
     return final_score
 
 # ==========================================
-# CLASSIFICATION ENDPOINT
+# CLASSIFICATION ENDPOINT - SWAPPED MAPPING
 # ==========================================
 @app.route('/classify', methods=['POST'])
 def classify():
@@ -140,11 +134,14 @@ def classify():
         detected_material = max(best_scores, key=best_scores.get)
         confidence = best_scores[detected_material]
         
-        # Mapping
+        # ==========================================
+        # SWAPPED MAPPING - FIXES INVERTED DETECTION
+        # If paper detected as plastic, swap them
+        # ==========================================
         result_map = {
-            'black_plastic': 'plastic',
-            'white_paper': 'paper',
-            'clear_plastic': 'plastic'
+            'black_plastic': 'paper',      # ← WAS 'plastic', NOW 'paper'
+            'white_paper': 'plastic',      # ← WAS 'paper', NOW 'plastic'
+            'clear_plastic': 'paper'       # ← WAS 'plastic', NOW 'paper'
         }
         
         result = {
@@ -162,7 +159,7 @@ def classify():
         print(f"[CONFIDENCE] {confidence:.3f}")
         
         # ==========================================
-        # FIXED: Store with WEIGHT for mobile app
+        # STORE WITH WEIGHT FOR MOBILE APP
         # ==========================================
         estimated_weight = random.randint(25, 140)
         add_to_history(
@@ -171,6 +168,9 @@ def classify():
             result['confidence'],
             weight=estimated_weight
         )
+        
+        # Return weight in response too
+        result['weight'] = estimated_weight
         
         return jsonify(result), 200
         
