@@ -138,11 +138,11 @@ def classify():
         # SWAPPED MAPPING - FIXES INVERTED DETECTION
         # If paper detected as plastic, swap them
         # ==========================================
-        result_map = {
-            'black_plastic': 'paper',      # ← WAS 'plastic', NOW 'paper'
-            'white_paper': 'plastic',      # ← WAS 'paper', NOW 'plastic'
-            'clear_plastic': 'paper'       # ← WAS 'plastic', NOW 'paper'
-        }
+       result_map = {
+    'black_plastic': 'plastic',
+    'white_paper': 'paper',
+    'clear_plastic': 'plastic'
+}
         
         result = {
             'material': result_map[detected_material],
