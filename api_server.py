@@ -41,6 +41,7 @@ def load_references():
     refs = {
         'black_plastic': [],
         'white_paper': [],
+        'brown_paper': [],  # ← ADDED
         'clear_plastic': []
     }
 
@@ -68,6 +69,7 @@ references = load_references()
 
 print(f"\nBlack plastic: {len(references['black_plastic'])} photos")
 print(f"White paper:   {len(references['white_paper'])} photos")
+print(f"Brown paper:   {len(references['brown_paper'])} photos")  # ← ADDED
 print(f"Clear plastic: {len(references['clear_plastic'])} photos")
 print("=" * 50 + "\n")
 
@@ -115,6 +117,7 @@ def classify():
         scores = {
             'black_plastic': [],
             'white_paper': [],
+            'brown_paper': [],  # ← ADDED
             'clear_plastic': []
         }
         
@@ -134,11 +137,12 @@ def classify():
         confidence = best_scores[detected_material]
         
         # ==========================================
-        # NORMAL MAPPING - Paper stays paper, plastic stays plastic
+        # MAPPING - Now includes brown_paper as paper
         # ==========================================
         result_map = {
             'black_plastic': 'plastic',
             'white_paper': 'paper',
+            'brown_paper': 'paper',  # ← ADDED
             'clear_plastic': 'plastic'
         }
         
@@ -149,6 +153,7 @@ def classify():
             'all_scores': {
                 'black_plastic': round(float(best_scores['black_plastic']), 3),
                 'white_paper': round(float(best_scores['white_paper']), 3),
+                'brown_paper': round(float(best_scores['brown_paper']), 3),  # ← ADDED
                 'clear_plastic': round(float(best_scores['clear_plastic']), 3)
             }
         }
@@ -186,6 +191,7 @@ def health():
         'references_loaded': {
             'black_plastic': len(references['black_plastic']),
             'white_paper': len(references['white_paper']),
+            'brown_paper': len(references['brown_paper']),  # ← ADDED
             'clear_plastic': len(references['clear_plastic'])
         }
     })
