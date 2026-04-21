@@ -1,6 +1,5 @@
 # ============================================
 # GREENBIN WASTE CLASSIFICATION API - FINAL
-# Fixed weight, swapped mapping for inverted detection
 # ============================================
 
 from flask import Flask, request, jsonify
@@ -95,7 +94,7 @@ def compare_images(img1, img2):
     return final_score
 
 # ==========================================
-# CLASSIFICATION ENDPOINT - SWAPPED MAPPING
+# CLASSIFICATION ENDPOINT
 # ==========================================
 @app.route('/classify', methods=['POST'])
 def classify():
@@ -135,14 +134,13 @@ def classify():
         confidence = best_scores[detected_material]
         
         # ==========================================
-        # SWAPPED MAPPING - FIXES INVERTED DETECTION
-        # If paper detected as plastic, swap them
+        # NORMAL MAPPING - Paper stays paper, plastic stays plastic
         # ==========================================
-       result_map = {
-    'black_plastic': 'plastic',
-    'white_paper': 'paper',
-    'clear_plastic': 'plastic'
-}
+        result_map = {
+            'black_plastic': 'plastic',
+            'white_paper': 'paper',
+            'clear_plastic': 'plastic'
+        }
         
         result = {
             'material': result_map[detected_material],
